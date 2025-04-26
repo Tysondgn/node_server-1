@@ -277,33 +277,34 @@ function insertPropertyDetails(data, callback) {
                   property_locationUrl,
                   property_rating,
                   property_ratingCount,
+                  youtubelink,
                   project_id
                   ) VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?,?, ?, ?, ?, ?,?, ?, ?, ?,?,?,?)`,
-              [
-                data.p_name, 
-                data.p_un, 
-                data.p_area,
-                data.p_areaUnit,
-                data.p_price,
-                data.p_bookAmount,
-                data.p_type,
-                data.p_bhk,
-                data.p_floor,
-                data.p_isGarden,
-                data.p_isParking,
-                data.p_isFurnished,
-                data.p_isAvailable,
-                data.p_desc,
-                data.p_address,
-                data.p_locality,
-                data.p_city,
-                data.p_pincode,
-                data.p_locationUrl,
-                data.p_rating,
-                data.p_ratingCount,
-                data.project_id
-
-              ],
+                  [
+                    data.property_name, 
+                    data.property_un, 
+                    data.property_area,
+                    data.property_areaUnit,
+                    data.property_price,
+                    data.property_bookAmount,
+                    data.property_type,
+                    data.property_bhk,
+                    data.property_floor,
+                    data.property_isGarden,
+                    data.property_isParking,
+                    data.property_isFurnished,
+                    data.property_isAvailable,
+                    data.property_desc,
+                    data.property_address,
+                    data.property_locality,
+                    data.property_city,
+                    data.property_pincode,
+                    data.property_locationUrl,
+                    data.property_rating,
+                    data.property_ratingCount,
+                    data.youtubelink,
+                    data.project_id
+                 ],    
               (insertError, insertResult) => {
                   if (insertError) {
                       return callback(insertError);
@@ -590,6 +591,25 @@ function changePropertyAvailability(data){
 });
 }
 
+function updateYoutubeLink(data){
+  return new Promise((resolve, reject) => {
+    // Check if the combination of u_id and s_id already exists
+    conn.query(
+        `UPDATE property SET youtubelink = ? WHERE property_id = ?`,
+        [
+          data.youtubelink,
+          data.p_id,
+        ],
+        (updateError, updateResult) => {
+            if (updateError) {
+                reject(updateError);
+            }
+            resolve(updateResult); 
+        }
+    );
+});
+}
+
 function uploadPropertyImage(p_id, propertyImage, callback){
 
     conn.query(
@@ -793,6 +813,7 @@ module.exports = {
 
 
     changePropertyAvailability,
+    updateYoutubeLink,
     insertAdminContact,
     uploadOffer,
     deleteOffer,

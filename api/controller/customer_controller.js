@@ -509,6 +509,9 @@ function requestVisit(req,res){
         })
    });
 } 
+
+
+
 function fetchVisitRequestedList(req,res){
    const { filterOptions, paginationOptions, data } = req.body;
 
@@ -531,6 +534,7 @@ function fetchVisitRequestedList(req,res){
 
   });
 }
+
 function fetchVisitRequestedPropertyDetails(req,res){
    const data = req.body;
    customerService.fetchVisitRequestedPropertyDetails(data,(error,result)=>{

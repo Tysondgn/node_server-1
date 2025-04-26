@@ -31,6 +31,7 @@ adminRouter.post('/uploadPropertyImage', auth.authenticateToken, propertyUpload.
 adminRouter.post('/deletePropertyImage', auth.authenticateToken, adminController.deletePropertyImage);
 adminRouter.put('/changeVisitStatus', auth.authenticateToken, adminController.changeVisitStatus);
 adminRouter.put('/changePropertyAvailability', auth.authenticateToken, adminController.changePropertyAvailability);
+adminRouter.put('/updateYoutubeLink', auth.authenticateToken, adminController.updateYoutubeLink);
 adminRouter.post('/fetchAllCustomerList', auth.authenticateToken, adminController.fetchAllCustomerList);
 adminRouter.post('/fetchAllEmployeeList', auth.authenticateToken, adminController.fetchAllEmployeeList);
 adminRouter.post('/postBlog', auth.authenticateToken, adminController.postBlog);

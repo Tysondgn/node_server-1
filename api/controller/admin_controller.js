@@ -435,6 +435,29 @@ function changePropertyAvailability(req,res){
    });
 }
 
+function updateYoutubeLink(req,res){
+  const data = req.body;
+  adminService.updateYoutubeLink(data).then((result) => {
+     console.log('status changed:', result);
+     return res.status(200).json(
+        {
+           success:true,
+           message:"link updated successfully"
+        }
+     )
+   })
+   .catch((error) => {
+     console.error('Error changing staus:', error);
+     return res.status(500).json(
+        {
+           success:false,
+           message:"error updating youtube link",
+           error:error
+        }
+     )
+   });
+}
+
 function fetchAllCustomerList(req,res){
   const {filterOptions, paginationOptions} = req.body;
   adminService.fetchAllCustomerList(filterOptions,paginationOptions).then((result) => {
@@ -542,6 +565,7 @@ module.exports = {
    fetchProject,
    fetchProjectWithPagination,
    changePropertyAvailability,
+   updateYoutubeLink,
    insertAdminContact, 
    uploadOffer,
    deleteOffer,

@@ -798,103 +798,103 @@ function requestVisit(data, callback){
 
 }
 
-function fetchVisitRequestedList(filterOptions, paginationOptions,data,callback){
+function fetchVisitRequestedList(filterOptions, paginationOptions, data, callback) {
+    const filterConditions = [];
+    const filterValues = [];
     
-      const filterConditions = [];
-      const filterValues = [];
-       // Check if propertybhk is provided
+    // Check if requestStatus is provided
     if (filterOptions.requestStatus !== undefined && filterOptions.requestStatus !== null) {
         if (filterOptions.requestStatus === 4) {
-
-          // Include less than 4 bhk
-          filterConditions.push(`v_status <= ${filterOptions.requestStatus}`);
-        
+            // Include less than or equal to 4 bhk
+            filterConditions.push(`visit.v_status <= ?`);
+            filterValues.push(filterOptions.requestStatus);
         } else {
-        
-          // Include specific request status
-          filterConditions.push(`v_status = ${filterOptions.requestStatus}`);
-        
+            // Include specific request status
+            filterConditions.push(`visit.v_status = ?`);
+            filterValues.push(filterOptions.requestStatus);
         }
-      }
+    }
+    
+    // Check if customer_id is provided
+    if (data.c_id !== undefined && data.c_id !== null) {
+        filterConditions.push(`visit.customer_id = ?`);
+        filterValues.push(data.c_id);
+    }
 
-      // if (data.c_id !== undefined && data.c_id !== null) {
-      //     // Include specific request status
-      //     filterConditions.push(`visit.customer_id = ${data.c_id}`);
-        
-      // }
+    // Construct the WHERE clause based on the filter conditions
+    const whereClause = filterConditions.length > 0 ? `WHERE ${filterConditions.join(' AND ')}` : '';
 
-
-      // Construct the WHERE clause based on the filter conditions
-      const whereClause = filterConditions.length > 0 ? `WHERE ${filterConditions.join(' AND ')}` : '';
-      // Add ORDER BY, LIMIT, and OFFSET clauses for pagination
-      const orderByClause = `ORDER BY visit.v_date DESC`;
-
-      // Define pagination options
-    const { page, limit } = paginationOptions;
+    // Add ORDER BY, LIMIT, and OFFSET clauses for pagination
+    const orderByClause = `ORDER BY visit.v_date DESC`;
+    const { page = 1, limit = 10 } = paginationOptions;
     const offset = (page - 1) * limit;
-    const limitOffsetClause = `LIMIT ${limit} OFFSET ${offset}`;
+    const limitOffsetClause = `LIMIT ? OFFSET ?`;
+    filterValues.push(limit, offset);
 
     const sqlQuery = `
     SELECT
-    property.*,
-    visit.v_status,
-    visit.v_id,
-    visit.v_date,
-    visit.visiting_date,
-    GROUP_CONCAT(property_image.image_url) AS pi_name,
-    COALESCE(r.total_rating, 0) AS total_rating,
-    COALESCE(r.review_count, 0) AS review_count
-FROM
-    property
-JOIN
-    visit ON property.property_id = visit.property_id
-LEFT JOIN
-    property_image ON property.property_id = property_image.property_id
-LEFT JOIN
-    (
-        SELECT
-            v.property_id,
-            SUM(r_rating) AS total_rating,
-            COUNT(*) AS review_count
-        FROM
-            review r
-        JOIN
-            visit v ON r.property_id = v.property_id
-        WHERE
-            v.customer_id = ${data.c_id}
-        GROUP BY
-            v.property_id
-    ) AS r ON property.property_id = r.property_id
-${whereClause}
-GROUP BY
-    property.property_id, visit.v_id
-${orderByClause}
-${limitOffsetClause};
-    ` ;
-    //console.log(`customer id is : ${data.c_id}`);
-    //console.log(sqlQuery);
-  conn.query(
-     sqlQuery,
-     [],
-     (selectErr,selectRes)=>{
-      if(selectErr){
-        return callback(selectErr);
-      }
-      // Iterate through the result rows
-    selectRes.forEach(row => {
-      // Check if pi_name is not null
-      if (row.pi_name) {
-        // Split the pi_name string into an array
-        row.pi_name = row.pi_name.split(',');
-      } else {
-        // Set pi_name to an empty array if there are no images
-        row.pi_name = [];
-      }
-    });
-      return callback(null,selectRes);
-     }
-  );
+        property.*,
+        visit.v_status,
+        visit.v_id,
+        visit.v_date,
+        visit.visiting_date,
+        GROUP_CONCAT(property_image.image_url) AS pi_name,
+        COALESCE(r.total_rating, 0) AS total_rating,
+        COALESCE(r.review_count, 0) AS review_count
+    FROM
+        property
+    JOIN
+        visit ON property.property_id = visit.property_id
+    LEFT JOIN
+        property_image ON property.property_id = property_image.property_id
+    LEFT JOIN
+        (
+            SELECT
+                v.property_id,
+                SUM(r.r_rating) AS total_rating,
+                COUNT(*) AS review_count
+            FROM
+                review r
+            JOIN
+                visit v ON r.property_id = v.property_id
+            WHERE
+                v.customer_id = ?
+            GROUP BY
+                v.property_id
+        ) AS r ON property.property_id = r.property_id
+    ${whereClause}
+    GROUP BY
+        property.property_id, visit.v_id
+    ${orderByClause}
+    ${limitOffsetClause};
+    `;
+
+    // Execute the query with parameterized values
+    conn.query(
+        sqlQuery,
+        [data.c_id, ...filterValues],
+        (selectErr, selectRes) => {
+            if (selectErr) {
+                return callback(selectErr);
+            }
+
+            // Process the result rows
+            selectRes.forEach(row => {
+                // Check if pi_name is not null
+                if (row.pi_name) {
+                    // Split the pi_name string into an array
+                    row.pi_name = row.pi_name.split(',');
+                } else {
+                    // Set pi_name to an empty array if there are no images
+                    row.pi_name = [];
+                }
+            });
+
+            return callback(null, selectRes);
+        }
+    );
 }
+
 
 function fetchVisitRequestedPropertyDetails(data, callback){
   conn.query(
